@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!-- 
+TODO LIST:
+- Arranjar melhor maneira de escrever a função addLine(),
+- Revisar formatação do código todo
+- fazer desenho da concomitancia
+- 
+
+-->
+<html>
+    <head>
+	<meta charset="UTF-8">
+	<title>Concomitador de Peŕiodos</title>
+	<style>html{font-family: Arial;}</style>
+    </head>
+
+    <body>
+	<h2>Concomitador de Períodos</h2>
+	<hr>
+	<button onclick="addLine();">Adc. Linha</button>
+	<button onclick="remLine();">Del. Linha</button>
+	<button onclick="calculate();">Calcular</button>
+	<p></p>
+	
+	<table>
+	    <thead>
+		<tr>
+		    <th>Per. Inicial</th>
+		    <th>Per. Final</th>
+		    <th>Total Nºs do Período</th>
+		    <th>Concomitado</th>
+		    <th>Aproveitado</th>
+		</tr>
+	    </thead>
+	    <tbody id="tbody">
+		<tr>
+		    <td>
+				<input type="number" name="start" onchange="calculate();" value="1">
+		    </td>
+		    <td>
+				<input type="number" name="end" onchange="calculate();" value="5">
+		    </td>
+		    <td>
+				<input type="number" name="total" readonly  value="0">
+		    </td>
+		    <td>
+				<input type="number" name="concomit" readonly value="0">
+		    </td>
+		    <td>
+				<input type="number" name="availed" readonly value="0">
+		    </td>
+		</tr>
+		<tr>
+		    <td>
+				<input type="number" name="start" onchange="calculate();" value="2">
+		    </td>
+		    <td>
+				<input type="number" name="end" onchange="calculate();" value="7">
+		    </td>
+		    <td>
+				<input type="number" name="total" readonly  value="0">
+		    </td>
+		    <td>
+				<input type="number" name="concomit" readonly value="0">
+		    </td>
+		    <td>
+				<input type="number" name="availed" readonly value="0">
+		    </td>
+		</tr>
+		<tr>
+		    <td>
+				<input type="number" name="start" onchange="calculate();" value="3">
+		    </td>
+		    <td>
+				<input type="number" name="end" onchange="calculate();" value="6">
+		    </td>
+		    <td>
+				<input type="number" name="total" readonly  value="0">
+		    </td>
+		    <td>
+				<input type="number" name="concomit" readonly value="0">
+		    </td>
+		    <td>		
+				<input type="number" name="availed" readonly value="0">
+		    </td>
+		</tr>
+	    </tbody>
+	</table>	
+	<script>
+	/**
+	 * Globals		
+	 */
+	var iniList = document.getElementsByName('start');
+	var endList = document.getElementsByName('end');
+	var totalList = document.getElementsByName('total');
+	var concomitList = document.getElementsByName('concomit');
+	var availedList = document.getElementsByName('availed');
+
+	function setLists()
+	{
+		iniList = document.getElementsByName('start');
+		endList = document.getElementsByName('end');
+		totalList = document.getElementsByName('total');
+		concomitList = document.getElementsByName('concomit');
+		availedList = document.getElementsByName('availed');
+	}
+
+	function calculate()
+	{
+		totalPeriod();
+		concomitant();
+		availedPeriod();
+	}
+
+	function addLine()
+	{
+		var child = '<tr>\n\
+						<td>\n\
+							<input type="number" name="start" onchange="calculate();" value="0">\n\
+						</td>\n\
+						<td>\n\
+							<input type="number" name="end" onchange="calculate();" value="0">\n\
+						</td>\n\
+						<td>\n\
+							<input type="number" name="total" readonly  value="0">\n\
+						</td>\n\
+						<td>\n\
+							<input type="number" name="concomit" readonly value="0">\n\
+						</td>\n\
+						<td>\n\
+							<input type="number" name="availed" readonly value="0">\n\
+						</td>\n\
+					</tr>';
+
+		document.getElementById('tbody').innerHTML += child;
+	}
+
+	function remLine()
+	{
+		var tbody = document.getElementById('tbody');
+		tbody.removeChild(tbody.lastChild);
+	}
+
+	function totalPeriod()
+	{
+		setLists();
+
+		for (var i = 0; i < iniList.length; i++)
+		{
+			totalList[i].value = endList[i].valueAsNumber - iniList[i].valueAsNumber + 1;
+		}
+	}
+
+	function concomitant()
+	{
+		zeroConcomit();
+		setLists();
+
+		var unorganizedList = [], organizedList, iniI, iniJ, endI, endJ;
+
+		for (var i = 0; i < iniList.length; i++)
+		{
+			unorganizedList.push({ini: iniList[i].valueAsNumber, end: endList[i].valueAsNumber, row: i})
+		}
+
+		organizedList = unorganizedList.sort(function (i, j) {
+			return i.ini - j.ini;
+		});
+
+		for (var i = 1; i < organizedList.length; i++)
+		{
+			var numsList = [], concomitantList = [];
+
+			iniI = organizedList[i].ini;
+			endI = organizedList[i].end;
+
+			for (var j = i - 1; j >= 0; j--)
+			{
+				iniJ = organizedList[j].ini;
+				endJ = organizedList[j].end;
+
+				if (iniI >= iniJ &&
+						iniI <= endJ &&
+						endI >= endJ)
+				{
+					for (var n = iniI; n <= endJ; n++)
+					{
+						numsList.push(n);
+					}
+				} else if (iniI >= iniJ &&
+						iniI <= endJ &&
+						endI <= endJ)
+				{
+					for (var n = iniI; n <= endI; n++)
+					{
+						numsList.push(n);
+					}
+				}
+			}
+
+			concomitantList = numsList.filter(function (k, l) {
+				return numsList.indexOf(k) === l;
+			});
+
+			document.getElementsByName('concomit')[organizedList[i].row].value = concomitantList.length;
+		}
+
+	}
+
+	function zeroConcomit() {
+		setLists();
+
+		for (var i = 0; i < concomitList.length; i++) {
+			concomitList[i].value = 0;
+		}
+	}
+
+	function availedPeriod() {
+		setLists();
+
+		for (var i = 0; i < concomitList.length; i++) {
+			availedList[i].value = totalList[i].valueAsNumber - concomitList[i].valueAsNumber;
+		}
+	}
+	</script>
+
+    </body>
+</html>
